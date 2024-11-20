@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 50px; }
+    #chatContainer { max-width: 500px; margin: auto; }
+    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
+    #messageInput { width: 100%; padding: 8px; }
+    button { padding: 5px 10px; margin-top: 5px; }
+
+  </style>
+</head>
+<body>
+<div id="chatContainer">
+  <h1>Chat</h1>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Type your message">
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+  const chatId = sessionStorage.getItem('chatId');
+
+  async function loadMessages() {
+    const response = await fetch(`/chat/${chatId}/messages`, {
+      headers: { 'Authorization': sessionStorage.getItem('token') }
+    });
+
+    if (!response.ok) {
+      alert('Failed to load messages');
+      return;
+    }
+
+    const messages = await response.json();
+    const messageContainer = document.getElementById('messages');
+    messageContainer.innerHTML = '';
+    messages.forEach(msg => {
+      const msgElement = document.createElement('div');
+      msgElement.textContent = `${msg.sender}: ${msg.content}`;
+      messageContainer.appendChild(msgElement);
+    });
+  }
+
+  async function sendMessage() {
+    const messageContent = document.getElementById('messageInput').value;
+    await fetch(`/chat/${chatId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': sessionStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sender: 'You', content: messageContent })
+    });
+    document.getElementById('messageInput').value = '';
+    loadMessages();
+  }
+
+  loadMessages();
+</script>
+</body>
+</html>

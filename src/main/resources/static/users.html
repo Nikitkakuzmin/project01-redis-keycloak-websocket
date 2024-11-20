@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User List</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 50px; }
+    .user-list, .chat-list { list-style-type: none; padding: 0; }
+    .user-item, .chat-item { margin: 10px 0; display: flex; justify-content: space-between; }
+    button { padding: 5px 10px; }
+  </style>
+</head>
+<body>
+<h1>User List</h1>
+<h2>Users</h2>
+<ul class="user-list" id="userList"></ul>
+
+<h2>Your Chats</h2>
+<ul class="chat-list" id="chatList"></ul>
+
+<script>
+  // Функция для загрузки пользователей
+  async function loadUsers() {
+    const response = await fetch('/user', {
+      headers: { 'Authorization': sessionStorage.getItem('token') }
+    });
+    const users = await response.json();
+
+    const userList = document.getElementById('userList');
+    users.forEach(user => {
+      const listItem = document.createElement('li');
+      listItem.className = 'user-item';
+      listItem.innerHTML = `
+                    ${user.username}
+                    <button onclick="startChat('${user.id}')">Start Chat</button>
+                `;
+      userList.appendChild(listItem);
+    });
+  }
+
+  // Функция для загрузки чатов текущего пользователя
+  async function loadChats() {
+    const response = await fetch('/chat/user/chats', { // Обновите URL для получения чатов пользователя
+      headers: { 'Authorization': sessionStorage.getItem('token') }
+    });
+
+    if (!response.ok) {
+      alert('Failed to load chats');
+      return;
+    }
+
+    const chats = await response.json();
+    const chatList = document.getElementById('chatList');
+    chats.forEach(chat => {
+      const listItem = document.createElement('li');
+      listItem.className = 'chat-item';
+      listItem.innerHTML = `
+            ${chat.chatName}
+            <button onclick="joinChat('${chat.id}')">Join Chat</button>
+        `;
+      chatList.appendChild(listItem);
+    });
+  }
+
+  // Функция для начала нового чата
+  async function startChat(userId) {
+    const response = await fetch('/chat/create', {
+      method: 'POST',
+      headers: {
+        'Authorization': sessionStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ chatName: 'Chat with ' + userId, users: [userId] })
+    });
+
+    if (!response.ok) {
+      alert('Failed to create chat');
+      return;
+    }
+
+    const chat = await response.json();
+    sessionStorage.setItem('chatId', chat.id);
+    window.location.href = 'chat.html';
+  }
+
+  // Функция для входа в существующий чат
+  async function joinChat(chatId) {
+    sessionStorage.setItem('chatId', chatId);
+    window.location.href = 'chat.html'; // Перейдите на страницу чата
+  }
+
+  // Загрузка пользователей и чатов при загрузке страницы
+  loadUsers();
+  loadChats();
+</script>
+</body>
+</html>

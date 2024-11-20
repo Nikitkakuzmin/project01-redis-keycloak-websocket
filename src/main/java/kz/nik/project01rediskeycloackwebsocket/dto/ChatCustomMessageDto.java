@@ -5,11 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomMessage {
-    private String type;
+public class ChatCustomMessageDto implements Serializable {
+    private String sender;
     private String content;
+    private String receiver;
 }

@@ -18,8 +18,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html","/users.html","/chat.html").permitAll() // Доступ к index.html и статическим ресурсам
                         .requestMatchers("/user").permitAll()
                         .requestMatchers("/user/*").permitAll()
+                        .requestMatchers("/user/*/*").permitAll()
+                        .requestMatchers("/chat/*").permitAll()
+                        .requestMatchers("/chat/*/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
